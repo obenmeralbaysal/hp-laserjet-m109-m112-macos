@@ -1,0 +1,103 @@
+*PPD-Adobe: "4.3"
+*% HP LaserJet M109-M112 / M111ca. Speaks DW-PCL (PCLm) and PWG Raster over IPP-USB, not PCL5.
+*FormatVersion: "4.3"
+*FileVersion: "1.0"
+*LanguageVersion: English
+*LanguageEncoding: ISOLatin1
+*PCFileName: "HPM111.PPD"
+*Manufacturer: "HP"
+*Product: "(HP LaserJet M109-M112)"
+*ModelName: "HP LaserJet M109-M112"
+*ShortNickName: "HP LaserJet M111ca"
+*NickName: "HP LaserJet M109-M112 (PWG)"
+*PSVersion: "(3010.000) 0"
+*LanguageLevel: "3"
+*ColorDevice: False
+*DefaultColorSpace: Gray
+*FileSystem: False
+*Throughput: "20"
+*LandscapeOrientation: Plus90
+*TTRasterizer: Type42
+*1284DeviceID: "MFG:HP;CMD:PJL,PML,DW-PCL;MDL:HP LaserJet M109-M112;CLS:PRINTER;DES:HP LaserJet M111ca;"
+*cupsVersion: 2.3
+*cupsModelNumber: 111
+*cupsManualCopies: True
+*cupsFilter: "image/pwg-raster 0 -"
+*cupsLanguages: "en"
+*cupsBackSide: "Normal"
+*APPrinterLowInkTool: "/System/Library/CoreServices/Applications/Feedback Assistant.app"
+*OpenUI *PageSize/Media Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: A4
+*PageSize A4/A4: "<</PageSize[595 842]/ImagingBBox null>>setpagedevice"
+*PageSize Letter/US Letter: "<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageSize Legal/US Legal: "<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*PageSize A5/A5: "<</PageSize[420 595]/ImagingBBox null>>setpagedevice"
+*PageSize A6/A6: "<</PageSize[298 420]/ImagingBBox null>>setpagedevice"
+*PageSize 4x6/4 x 6 in: "<</PageSize[288 432]/ImagingBBox null>>setpagedevice"
+*PageSize 5x7/5 x 7 in: "<</PageSize[360 504]/ImagingBBox null>>setpagedevice"
+*PageSize EnvDL/Envelope DL: "<</PageSize[312 624]/ImagingBBox null>>setpagedevice"
+*PageSize Env10/Envelope #10: "<</PageSize[297 684]/ImagingBBox null>>setpagedevice"
+*PageSize EnvC5/Envelope C5: "<</PageSize[459 649]/ImagingBBox null>>setpagedevice"
+*PageSize EnvC6/Envelope C6: "<</PageSize[323 459]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageSize
+*OpenUI *PageRegion/Media Region: PickOne
+*OrderDependency: 10 AnySetup *PageRegion
+*DefaultPageRegion: A4
+*PageRegion A4/A4: "<</PageSize[595 842]/ImagingBBox null>>setpagedevice"
+*PageRegion Letter/US Letter: "<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageRegion Legal/US Legal: "<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*PageRegion A5/A5: "<</PageSize[420 595]/ImagingBBox null>>setpagedevice"
+*PageRegion A6/A6: "<</PageSize[298 420]/ImagingBBox null>>setpagedevice"
+*PageRegion 4x6/4 x 6 in: "<</PageSize[288 432]/ImagingBBox null>>setpagedevice"
+*PageRegion 5x7/5 x 7 in: "<</PageSize[360 504]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvDL/Envelope DL: "<</PageSize[312 624]/ImagingBBox null>>setpagedevice"
+*PageRegion Env10/Envelope #10: "<</PageSize[297 684]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvC5/Envelope C5: "<</PageSize[459 649]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvC6/Envelope C6: "<</PageSize[323 459]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+*DefaultImageableArea: A4
+*ImageableArea A4/A4: "12 12 583 830"
+*ImageableArea Letter/US Letter: "12 12 600 780"
+*ImageableArea Legal/US Legal: "12 12 600 996"
+*ImageableArea A5/A5: "12 12 408 583"
+*ImageableArea A6/A6: "12 12 286 408"
+*ImageableArea 4x6/4 x 6 in: "12 12 276 420"
+*ImageableArea 5x7/5 x 7 in: "12 12 348 492"
+*ImageableArea EnvDL/Envelope DL: "12 12 300 612"
+*ImageableArea Env10/Envelope #10: "12 12 285 672"
+*ImageableArea EnvC5/Envelope C5: "12 12 447 637"
+*ImageableArea EnvC6/Envelope C6: "12 12 311 447"
+*DefaultPaperDimension: A4
+*PaperDimension A4/A4: "595 842"
+*PaperDimension Letter/US Letter: "612 792"
+*PaperDimension Legal/US Legal: "612 1008"
+*PaperDimension A5/A5: "420 595"
+*PaperDimension A6/A6: "298 420"
+*PaperDimension 4x6/4 x 6 in: "288 432"
+*PaperDimension 5x7/5 x 7 in: "360 504"
+*PaperDimension EnvDL/Envelope DL: "312 624"
+*PaperDimension Env10/Envelope #10: "297 684"
+*PaperDimension EnvC5/Envelope C5: "459 649"
+*PaperDimension EnvC6/Envelope C6: "323 459"
+*OpenUI *Resolution/Resolution: PickOne
+*OrderDependency: 20 AnySetup *Resolution
+*DefaultResolution: 600dpi
+*Resolution 600dpi/600 DPI: "<</HWResolution[600 600]/cupsBitsPerColor 8/cupsColorSpace 18/cupsColorOrder 0/cupsCompression 0>>setpagedevice"
+*Resolution 300dpi/300 DPI: "<</HWResolution[300 300]/cupsBitsPerColor 8/cupsColorSpace 18/cupsColorOrder 0/cupsCompression 0>>setpagedevice"
+*CloseUI: *Resolution
+*OpenUI *InputSlot/Media Source: PickOne
+*OrderDependency: 15 AnySetup *InputSlot
+*DefaultInputSlot: Auto
+*InputSlot Auto/Auto: "<</MediaPosition 0>>setpagedevice"
+*InputSlot Tray1/Tray 1: "<</MediaPosition 1>>setpagedevice"
+*InputSlot Manual/Manual: "<</MediaPosition 2>>setpagedevice"
+*CloseUI: *InputSlot
+*DefaultFont: Courier
+*Font Courier: Standard "(001.005)" Standard ROM
+*OpenUI *ColorModel/Print Mode: PickOne
+*OrderDependency: 10 AnySetup *ColorModel
+*DefaultColorModel: Gray
+*ColorModel Gray/Grayscale: "<</cupsColorSpace 18/cupsColorOrder 0/cupsCompression 0/cupsBitsPerColor 8>>setpagedevice"
+*CloseUI: *ColorModel
+*CloseGroup: CUPS

@@ -1,0 +1,218 @@
+#!/bin/sh
+# CUPS backend for HP LaserJet M109-M112 / M111ca.
+# The printer accepts PWG Raster over IPP-USB, not PCL.
+# /usr/bin/python3 is an Xcode stub and dies inside the CUPS sandbox, so this is shell only.
+
+USB_BACKEND=/usr/libexec/cups/backend/usb
+IPPTOOL=/usr/bin/ipptool
+
+log() {
+  printf '%s: %s\n' "$1" "$2" >&2
+}
+
+discover() {
+  "$USB_BACKEND" 2>/dev/null | awk '
+    /M109-M112/ || /M111/ {
+      uri = ""
+      for (i = 1; i <= NF; i++) if ($i ~ /^usb:\/\//) uri = $i
+      if (match(uri, /serial=[^& ]+/)) {
+        serial = substr(uri, RSTART + 7, RLENGTH - 7)
+        printf "direct hpm111://%s \"HP LaserJet M111ca\" \"HP LaserJet M109-M112\" \"MFG:HP;CMD:PJL,PML,DW-PCL;MDL:HP LaserJet M109-M112;CLS:PRINTER;DES:HP LaserJet M111ca;\" \"\"\n", serial
+      }
+    }
+  '
+}
+
+media_for() {
+  case "$1" in
+    Letter) printf '%s\n' na_letter_8.5x11in ;;
+    Legal) printf '%s\n' na_legal_8.5x14in ;;
+    A5) printf '%s\n' iso_a5_148x210mm ;;
+    A6) printf '%s\n' iso_a6_105x148mm ;;
+    4x6) printf '%s\n' na_index-4x6_4x6in ;;
+    5x7) printf '%s\n' na_5x7_5x7in ;;
+    EnvDL) printf '%s\n' iso_dl_110x220mm ;;
+    Env10) printf '%s\n' na_number-10_4.125x9.5in ;;
+    EnvC5) printf '%s\n' iso_c5_162x229mm ;;
+    EnvC6) printf '%s\n' iso_c6_114x162mm ;;
+    *) printf '%s\n' iso_a4_210x297mm ;;
+  esac
+}
+
+ippusb_port() {
+  serial="$1"
+  label=$(/bin/launchctl list 2>/dev/null | awk -v s="$serial" '
+    index($0, "ippusb") && index($0, s) {
+      n = split($0, f, "\t")
+      if (n >= 3) { print f[3]; exit }
+      sub(/^[^ ]+ +[^ ]+ +/, "")
+      print
+      exit
+    }
+  ')
+  if [ -z "$label" ]; then
+    label="com.apple.print.ippusb.HP.HP LaserJet M109-M112.$serial"
+  fi
+  /bin/launchctl print "system/$label" 2>/dev/null | awk '/service name =/ { print $4; exit }'
+}
+
+if [ "$#" -eq 0 ]; then
+  discover
+  exit 0
+fi
+
+if [ -n "${DEVICE_URI:-}" ]; then
+  URI=$DEVICE_URI
+  COPIES=${4:-1}
+  OPTS=${5:-}
+  FILE=${6:-}
+  TITLE=${3:-print}
+else
+  URI=$1
+  COPIES=${5:-1}
+  OPTS=${6:-}
+  FILE=${7:-}
+  TITLE=${4:-print}
+fi
+
+SERIAL=${URI#*://}
+SERIAL=${SERIAL%%\?*}
+
+log STATE "+connecting-to-device"
+PORT=$(ippusb_port "$SERIAL")
+if [ -z "$PORT" ]; then
+  log STATE "-connecting-to-device"
+  log ERROR "IPP-USB tunnel is down. Plug in the HP LaserJet with USB."
+  log STATE "+offline-report"
+  exit 1
+fi
+log DEBUG "IPP-USB ipp://127.0.0.1:$PORT/ipp/print"
+log STATE "-connecting-to-device"
+
+OWNED=""
+if [ -z "$FILE" ]; then
+  OWNED=$(mktemp "${TMPDIR:-/tmp}/hpm111.XXXXXX.pwg")
+  cat > "$OWNED"
+  FILE=$OWNED
+fi
+
+PAGE=A4
+RES=600
+MEDIA=""
+for opt in $OPTS; do
+  case "$opt" in
+    PageSize=*|PageRegion=*) PAGE=${opt#*=} ;;
+    media=*) MEDIA=${opt#media=} ;;
+    Resolution=*|printer-resolution=*) RES=$(printf '%s\n' "${opt#*=}" | tr -cd '0-9') ;;
+  esac
+done
+if [ -z "$MEDIA" ]; then
+  MEDIA=$(media_for "$PAGE")
+fi
+case "$RES" in
+  300|600) ;;
+  *) RES=600 ;;
+esac
+case "$COPIES" in
+  ''|*[!0-9]*) COPIES=1 ;;
+esac
+if [ "$COPIES" -lt 1 ]; then COPIES=1; fi
+if [ "$COPIES" -gt 99 ]; then COPIES=99; fi
+
+SAFE_TITLE=$(printf '%s\n' "$TITLE" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-80)
+[ -n "$SAFE_TITLE" ] || SAFE_TITLE=print
+
+PRINTER="ipp://127.0.0.1:${PORT}/ipp/print"
+TEST=$(mktemp "${TMPDIR:-/tmp}/hpm111.XXXXXX.test")
+cat > "$TEST" << EOF
+{
+    NAME "Print"
+    OPERATION Print-Job
+    GROUP operation-attributes-tag
+    ATTR charset attributes-charset utf-8
+    ATTR language attributes-natural-language en
+    ATTR uri printer-uri \$uri
+    ATTR name requesting-user-name \$user
+    ATTR mimeMediaType document-format image/pwg-raster
+    ATTR name job-name $SAFE_TITLE
+    GROUP job-attributes-tag
+    ATTR integer copies $COPIES
+    ATTR keyword media $MEDIA
+    ATTR keyword print-color-mode monochrome
+    ATTR resolution printer-resolution ${RES}dpi
+    ATTR keyword sides one-sided
+    FILE $FILE
+    STATUS successful-ok
+    STATUS successful-ok-ignored-or-substituted-attributes
+    EXPECT job-id OF-TYPE integer
+}
+EOF
+
+cleanup() {
+  rm -f "$TEST"
+  if [ -n "$OWNED" ]; then
+    rm -f "$OWNED"
+  fi
+}
+trap cleanup EXIT
+
+OUT=$("$IPPTOOL" -tv "$PRINTER" "$TEST" 2>&1) || {
+  log ERROR "$OUT"
+  exit 1
+}
+JOB=$(printf '%s\n' "$OUT" | awk '/job-id \(integer\)/ { print $NF; exit }')
+if [ -z "$JOB" ]; then
+  log ERROR "printer did not return a job id"
+  log DEBUG "$OUT"
+  exit 1
+fi
+log INFO "printer job $JOB"
+
+JOBTEST=$(mktemp "${TMPDIR:-/tmp}/hpm111.XXXXXX.job")
+cat > "$JOBTEST" << EOF
+{
+    NAME "Job"
+    OPERATION Get-Job-Attributes
+    GROUP operation-attributes-tag
+    ATTR charset attributes-charset utf-8
+    ATTR language attributes-natural-language en
+    ATTR uri printer-uri \$uri
+    ATTR integer job-id $JOB
+    ATTR name requesting-user-name \$user
+}
+EOF
+
+i=0
+while [ "$i" -lt 90 ]; do
+  STATE_OUT=$("$IPPTOOL" -tv "$PRINTER" "$JOBTEST" 2>&1) || {
+    log ERROR "$STATE_OUT"
+    rm -f "$JOBTEST"
+    exit 1
+  }
+  STATE=$(printf '%s\n' "$STATE_OUT" | awk '/job-state \(enum\)/ { print $NF; exit }')
+  REASONS=$(printf '%s\n' "$STATE_OUT" | awk '/job-state-reasons/ { print $NF; exit }')
+  log DEBUG "job $JOB state=$STATE reasons=$REASONS"
+  case "$STATE" in
+    completed)
+      rm -f "$JOBTEST"
+      exit 0
+      ;;
+    aborted|canceled)
+      log ERROR "printer ended the job ($STATE $REASONS)"
+      rm -f "$JOBTEST"
+      exit 1
+      ;;
+  esac
+  case "$REASONS" in
+    *media-needed*|*media-empty*)
+      log STATE "+media-empty-warning"
+      log INFO "Load paper. The job continues when paper is in the tray."
+      ;;
+  esac
+  i=$((i + 1))
+  sleep 2
+done
+
+log ERROR "timed out waiting for the printer"
+rm -f "$JOBTEST"
+exit 1
